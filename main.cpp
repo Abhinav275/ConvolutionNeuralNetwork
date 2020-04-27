@@ -55,14 +55,14 @@ vector<Eigen::VectorXd> convert_labels(vector<int> labels, int size){
 	vector<Eigen::VectorXd> new_labels;
 	for(int i=0;i<labels.size();i++){
 		Eigen::VectorXd temp = Eigen::VectorXd::Zero(size);
-		temp(i) = 1.0;
-		new_labels.push_back(labels);
+		temp(labels[i]) = 1.0;
+		new_labels.push_back(temp);
 	}
 	return new_labels;
 }
 
 // function to normaliza the images by dividing them by 255
-void normalize_eigen(vector<Eigen::VectorXd> x){
+void normalize_eigen(vector<Eigen::VectorXd>& x){
 	for(int i=0;i<x.size();i++) x[i] = x[i]/255.0;
 	return; 
 }
@@ -107,48 +107,110 @@ Eigen::MatrixXd get_random_matrix(double low, double high, int m, int n){
 	return mat;
 }
 
+// function that implements forward propogation of fully connected layer
+Eigen::VectorXd fc(Eigen::VectorXd x, Eigen::MatrixXd w, Eigen::MatrixXd b){
+	Eigen::VectorXd y = w*x+b;
+	return y;
+}
+
+// function to implement back propogation of full connected layer
+void fc_backward(Eigen::VectorXd dl_dy, Eigen::VectorXd x, Eigen::MatrixXd w, Eigen::MatrixXd b, Eigen::VectorXd y,
+	Eigen::MatrixXd& dl_dx, Eigen::MatrixXd& dl_dw, Eigen::MatrixXd& dl_db){
+	dl_dx = w.transpose()*dl_dy;
+	dl_dw = dl_dy*x.transpose();
+	dl_db = dl_dy;
+	return;
+}
+
+// function to get Euclidean loss
+void get_euclidean_loss(Eigen::VectorXd y_predict, Eigen::VectorXd y,
+	double& loss, Eigen::VectorXd& dl_dy){
+	dl_dy = y_predict - y;
+	loss = dl_dy.norm();
+	return;
+}
+
 // function to run single layer perceptron with no activation
-void train_slp_linear(vector<vector<Eigen::VectorXd>>& mini_x, vector<vector<int>>& mini_y,
+void train_slp_linear(vector<vector<Eigen::VectorXd>>& mini_x, vector<vector<Eigen::VectorXd>>& mini_y,
 	Eigen::MatrixXd& w, Eigen::MatrixXd& b){
-	double lr = 0.08;
+	double lr = 0.01;
 	double decay = 0.9;
 
 	// initialize weights
-	w = get_random_matrix(0.0, 1.0, 10, mini_x[0][0].size());
-	b = get_random_matrix(0.0, 1.0, 10, 1);
+	w = get_random_matrix(0.0, 0.1, 10, mini_x[0][0].size());
+	b = get_random_matrix(0.0, 0.1, 10, 1);
 
-	// batch number;
+	// batch number and batch, epoch loss;
 	int k=0;
+	double batch_loss = 0.0;
+	double epoch_loss = 0.0;
+
+	cout<<"Training Single Layer Perceptron"<<endl;
 	for(int iter = 1; iter<10000; iter++){
-		if(epoch%1000 == 0) lr = lr*decay;
+		if(iter%2000 == 0) lr = lr*decay;
 		Eigen::MatrixXd dL_dw = Eigen::MatrixXd::Zero(w.rows(), w.cols());
 		Eigen::MatrixXd dL_db = Eigen::MatrixXd::Zero(b.rows(), b.cols());
 
 		// iterate over current batch;
 		for(int i=0;i<mini_x[k].size();i++){
 			Eigen::VectorXd y_tilde = fc(mini_x[k][i], w, b);
-			double loss, dl_dy;
+			double loss;
+			Eigen::VectorXd dl_dy;
 			get_euclidean_loss(y_tilde, mini_y[k][i], loss, dl_dy);
+
+			batch_loss += loss;
 
 			// initialize gradients
 			Eigen::MatrixXd dl_dx = Eigen::MatrixXd::Zero(mini_x[k][i].rows(), mini_x[k][i].cols());
 			Eigen::MatrixXd dl_dw = Eigen::MatrixXd::Zero(w.rows(), w.cols());
 			Eigen::MatrixXd dl_db = Eigen::MatrixXd::Zero(b.rows(), b.cols());
 
+
+			// backpropogate gradients
 			fc_backward(dl_dy, mini_x[k][i], w, b, mini_y[k][i],
 				dl_dx, dl_dw, dl_db);
 
+			// add the gradients for this batch
 			dL_dw = dL_dw + dl_dw;
 			dL_db = dL_db + dl_db;
 		}
-		k+=1;
-		if(k == mini_x.size()) k=0;
 
 		// update weights
-		w = w - dL_dw*(lr/mini_x.size());
-		b = b - dL_db*(lr/mini_x.size()); 
+		w = w - dL_dw*(lr/mini_x[k].size());
+		b = b - dL_db*(lr/mini_x[k].size());
+
+		// cout<<batch_loss/mini_x[k].size()<<endl;
+		epoch_loss += batch_loss/mini_x[k].size();
+		batch_loss = 0.0;
+		k+=1;
+		if(k == mini_x.size()) {
+			cout<<"Epoch loss: "<<epoch_loss/mini_x.size()<<endl;
+			k=0;
+			epoch_loss = 0.0;
+		}
+
 	}
 
+	return;
+}
+
+// function to test single layer perceptron
+void test_slp_linear(Eigen::MatrixXd w, Eigen::MatrixXd b, vector<Eigen::VectorXd> test_data, vector<int> test_labels){
+	double accuracy = 0.0;
+	cout<<"Testing Single Layer Perceptron"<<endl;
+	for(int i=0;i<test_data.size();i++){
+		
+		// forward propogation in network
+		Eigen::VectorXd y_predict = fc(test_data[i], w, b);
+		
+		// get index of max value
+		int y_predict_label;
+		y_predict.maxCoeff(&y_predict_label);
+
+		if(y_predict_label == test_labels[i]) accuracy+=1.0;
+	}
+
+	cout<<"Model Accuracy: "<<(accuracy/test_data.size())*100<<endl;
 	return;
 }
 
@@ -166,7 +228,6 @@ int main()
 	vector<int> im_test_labels;
 	read_data("./data/test.csv", im_test, im_test_labels);
 	vector<Eigen::VectorXd> test_data = convert_data(im_test);
-	vector<Eigen::VectorXd> test_labels = convert_data(im_test_labels);
 	normalize_eigen(test_data);
 
 	int batch_size = 32;
@@ -174,6 +235,13 @@ int main()
 	vector<vector<Eigen::VectorXd>> mini_x;
 	vector<vector<Eigen::VectorXd>> mini_y;
 	get_mini_batch(train_data, train_labels, batch_size, mini_x, mini_y);
+
+	Eigen::MatrixXd w,b;
+
+	train_slp_linear(mini_x, mini_y,
+		w,b);
+
+	test_slp_linear(w, b, test_data, im_test_labels);
 
 	return 0;
 }
