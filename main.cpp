@@ -12,6 +12,7 @@
 #include "nn_utils.h"
 #include "SLPLinear.cpp"
 #include "SingleLayerPerceptron.cpp"
+#include "MultiLayerPerceptron.cpp"
 
 using namespace std;
 
@@ -36,13 +37,17 @@ int main()
 	vector<vector<Eigen::VectorXd>> mini_y;
 	get_mini_batch(train_data, train_labels, batch_size, mini_x, mini_y);
 
-	SLPLinear slpLinear;
-	slpLinear.train(mini_x, mini_y);
-	slpLinear.test(test_data, im_test_labels);
+	// SLPLinear slpLinear;
+	// slpLinear.train(mini_x, mini_y);
+	// slpLinear.test(test_data, im_test_labels);
 
-	SingleLayerPerceptron singleLayerPerceptron;
-	singleLayerPerceptron.train(mini_x, mini_y);
-	singleLayerPerceptron.test(test_data, im_test_labels);
+	// SingleLayerPerceptron singleLayerPerceptron;
+	// singleLayerPerceptron.train(mini_x, mini_y);
+	// singleLayerPerceptron.test(test_data, im_test_labels);
+
+	MultiLayerPerceptron multiLayerPerceptron;
+	multiLayerPerceptron.train(mini_x, mini_y);
+	multiLayerPerceptron.test(test_data, im_test_labels);
 
 	return 0;
 }

@@ -29,3 +29,9 @@ Eigen::VectorXd get_softmax(Eigen::VectorXd y);
 // function to get Euclidean loss
 void get_cross_entropy_loss(Eigen::VectorXd y_predict, Eigen::VectorXd y,
 	double& loss, Eigen::VectorXd& dl_dy);
+
+// function to get relu of given matrix
+Eigen::VectorXd relu(Eigen::VectorXd x);
+
+// function to get relu backward
+Eigen::VectorXd relu_backwards(Eigen::VectorXd dl_dy, Eigen::VectorXd x);
