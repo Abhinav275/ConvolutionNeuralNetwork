@@ -81,3 +81,20 @@ void get_cross_entropy_loss(Eigen::VectorXd y_predict, Eigen::VectorXd y,
 	}
 	dl_dy = y_softmax - y;
 }
+
+// function to get relu of given matrix
+Eigen::VectorXd relu(Eigen::VectorXd x){
+	for(int i=0;i<x.size();i++){
+		x[i] = max(0.0, x[i]);
+	}
+	return x;
+}
+
+// function to get relu backward
+Eigen::VectorXd relu_backwards(Eigen::VectorXd dl_dy, Eigen::VectorXd x){
+	for(int i=0;i<x.size();i++){
+		if(x[i] <= 0.0) dl_dy[i] = 0.0;
+	}
+	return dl_dy;
+}
+
