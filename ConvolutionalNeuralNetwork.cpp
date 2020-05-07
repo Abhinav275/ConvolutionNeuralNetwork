@@ -63,9 +63,9 @@ class ConvolutionalNeuralNetwork{
 
 					Eigen::MatrixXd img = reshape(mini_x[k][i], 14, 14);
 
-					Eigen::MatrixXd pred1 = conv(img, w_conv, b_conv);
-					Eigen::MatrixXd pred2 = relu_conv(pred1);
-					Eigen::MatrixXd pred3 = pool2x2(pred2);
+					Eigen::Tensor pred1 = conv(img, w_conv, b_conv);
+					Eigen::Tensor pred2 = relu_conv(pred1);
+					Eigen::Tensor pred3 = pool2x2(pred2);
 					Eigen::VectorXd pred4 = flatten(pred3);
 					Eigen::VectorXd y_tilde = fc(pred4, w_fc, b_fc);
 					
@@ -85,9 +85,9 @@ class ConvolutionalNeuralNetwork{
 					fc_backward(dl_dy, activation, w2, b2, y_tilde2,
 						dl_dx_fc, dl_dw_fc, dl_db_fc);
 
-					Eigen::MatrixXd dl_dx = flatten_backward(dl_dx_fc, pred3, pred4);
-					Eigen::MatrixXd dl_dx = pool2x2_backward(dl_dx, pred2, pred3);
-					Eigen::VectorXd dl_dx = relu__conv_backward(dl_dx, pred1, pred2);
+					Eigen::Tensor dl_dx = flatten_backward(dl_dx_fc, pred3, pred4);
+					Eigen::Tensor dl_dx = pool2x2_backward(dl_dx, pred2, pred3);
+					Eigen::Tensor dl_dx = relu__conv_backward(dl_dx, pred1, pred2);
 
 					conv_backward(dl_dx, img, w_conv, b_conv, pred1,
 						dl_dw_conv, dl_db_conv);

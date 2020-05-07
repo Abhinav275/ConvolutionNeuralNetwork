@@ -98,3 +98,78 @@ Eigen::VectorXd relu_backwards(Eigen::VectorXd dl_dy, Eigen::VectorXd x){
 	return dl_dy;
 }
 
+// function to convolve over given image
+Eigen::Tensor conv(Eigen::MatrixXd img, Eigen::Tensor<double, 4> w_conv, Eigen::MatrixXd b_conv){
+	Eigen::Tensor<double, 3> y(img.rows(), img.cols(), w_conv.dimension(3));
+	y.setZero();
+
+	
+}
+
+// function to get relu of given of convolution result
+Eigen::Tensor relu_conv(Eigen::Tensor x){
+	for(int i=0;i<x.dimension(0);i++){
+		for(int j=0;j<x.dimension(1);j++){
+			for(int k=0;k<x.dimension(2);k++){
+				x(i,j,k) = max(0.0, x(i,j,k));
+			}
+		}
+	}
+	return x;
+}
+
+
+// function to get relu of given of convolution result
+Eigen::Tensor relu__conv_backward(Eigen::Tensor dl_dy, Eigen::Tensor x, Eigen::Tensor y_pred){
+	for(int i=0;i<x.dimension(0);i++){
+		for(int j=0;j<x.dimension(1);j++){
+			for(int k=0;k<x.dimension(2);k++){
+				if(x(i,j,k) <= 0.0) dl_dy(i,j,k) = 0.0;
+			}
+		}
+	}
+	return dl_dy;
+}
+
+// function to get 2x2 max pooling results for matrix
+Eigen::Tensor pool2x2(Eigen::MatrixXd x){
+	Eigen::Tensor<double, 3> y(x.dimension(0)/2, x.dimension(1)/2, x.dimension(3));
+	y.setZero();
+	int a = 0;
+	int b = 0;
+	for(int i=0;i<x.dimension(0);i+=2){
+		for(int j=0;j<x.dimension(1);j+=2){
+			for(int k=0;k<x.dimension(2);k++){
+				y(a,b,k) = max(max(x(i,j,k), x(i+1,j,k)), max(x(i,j+1,k), x(i+1,j+1,k)));
+			}
+			b++;
+		}
+		a++;
+		b=0;
+	}
+	return y;
+}
+
+// function to get 2x2 max pooling backward
+Eigen::Tensor pool2x2_backward(Eigen::Tensor dl_dy, Eigen::Tensor x, Eigen::Tensor y){
+	Eigen::Tensor<double, 3> result(x.dimension(0), x.dimension(1), x.dimension(3));
+	result.setZero();
+	int a = 0;
+	int b = 0;
+	for(int i=0;i<x.dimension(0);i+=2){
+		for(int j=0;j<x.dimension(1);j+=2){
+			for(int k=0;k<x.dimension(2);k++){
+				double max_val = max(max(x(i,j,k), x(i+1,j,k)), max(x(i,j+1,k), x(i+1,j+1,k)));
+				if(max_val == x(i,j,k)) result(i,j,k) = dl_dy(a,b,k);
+				if(max_val == x(i+1,j,k)) result(i+1,j,k) = dl_dy(a,b,k);
+				if(max_val == x(i,j+1,k)) result(i,j+1,k) = dl_dy(a,b,k);
+				if(max_val == x(i+1,j+1,k)) result(i+1,j+1,k) = dl_dy(a,b,k);
+			}
+			b++;
+		}
+		a++;
+		b=0;
+	}
+	return result;	
+}
+
