@@ -2,6 +2,7 @@
 #include <vector>
 #include <Eigen/Core>
 #include <math.h>
+#include <unsupported/Eigen/CXX11/Tensor>
 using namespace std;
 
 // function to normaliza the images by dividing them by 255
@@ -35,3 +36,10 @@ Eigen::VectorXd relu(Eigen::VectorXd x);
 
 // function to get relu backward
 Eigen::VectorXd relu_backwards(Eigen::VectorXd dl_dy, Eigen::VectorXd x);
+
+// function to pad an image with zeros
+Eigen::MatrixXd pad(Eigen::MatrixXd img);
+
+// function to convulate over given image
+Eigen::Tensor<double, 3> conv(Eigen::MatrixXd img, Eigen::Tensor<double, 4> w_conv, Eigen::MatrixXd b_conv);
+
