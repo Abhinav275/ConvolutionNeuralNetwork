@@ -43,3 +43,12 @@ Eigen::MatrixXd pad(Eigen::MatrixXd img);
 // function to convulate over given image
 Eigen::Tensor<double, 3> conv(Eigen::MatrixXd img, Eigen::Tensor<double, 4> w_conv, Eigen::MatrixXd b_conv);
 
+// function to get relu of given of convolution result
+Eigen::Tensor<double, 3> relu_conv(Eigen::Tensor<double, 3> x);
+
+// function to get 2x2 max pooling results for matrix
+Eigen::Tensor<double, 3> pool2x2(Eigen::Tensor<double, 3> x);
+
+// function to flatten the tensor and return a vector
+Eigen::VectorXd flatten(Eigen::Tensor<double, 3> x);
+

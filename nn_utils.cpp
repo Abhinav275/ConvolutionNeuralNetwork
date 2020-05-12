@@ -139,32 +139,26 @@ Eigen::Tensor<double, 3> conv(Eigen::MatrixXd img, Eigen::Tensor<double, 4> w_co
 	Eigen::array<int, 4> w_extents = {w_conv.dimension(0), w_conv.dimension(1), 1, 1};
 	Eigen::array<int, 2> img_extents = {w_conv.dimension(0), w_conv.dimension(1)};
 
-	cout<<img_tensor<<endl;
-	cout<<w_conv<<endl;
-	Eigen::array<int, 2> offsets = {0, 0};
-	Eigen::Tensor<double, 2> sub_image = img_tensor.slice(offsets, img_extents);
-
-	Eigen::MatrixXd sub_image_matrix = Tensor_to_Matrix(sub_image, 3, 3);
-	
-	Eigen::array<int, 4> w_offsets = {0, 0, 0, 0};
-	Eigen::Tensor<double, 4> filter = w_conv.slice(w_offsets, w_extents);
-
-	Eigen::MatrixXd filter_matrix = Tensor_to_Matrix(filter, 3, 3);
-
-	Eigen::MatrixXd mul = (sub_image_matrix.array() * filter_matrix.array()).matrix();
-	cout<<sub_image(0,0)<<endl;
-	cout<<filter(0,0,0,0)<<endl;
-	cout<<mul<<endl;
-	cout<<mul.sum()<<endl;
-	// for(int i=0;i<img_tensor.dimension(0)-w_conv.dimension(0)+1;i++){
-	// 	for(int j=0;j<img_tensor.dimension(1)-w_conv.dimension(1)+1;j++){
-			
-	// 	}
-	// }
-	// for(int i=0;i<w_conv.dimension(3);i++){
-	// 	Eigen::array<int, 4> offsets = {0, 0, 0, i};
-	// 	auto filter = w_conv.slice(offsets, extents);
-	// }
+	for(int i=0;i<w_conv.dimension(3);i++){
+		Eigen::array<int, 4> offsets = {0, 0, 0, i};
+		Eigen::Tensor<double, 4> filter = w_conv.slice(offsets, w_extents);
+		Eigen::MatrixXd filter_matrix = Tensor_to_Matrix(filter, 3, 3);
+		
+		for(int j=0;j<img_tensor.dimension(0)-w_conv.dimension(0)+1;j++){
+			for(int k=0;k<img_tensor.dimension(1)-w_conv.dimension(1)+1;k++){
+				
+				Eigen::array<int, 2> img_offsets = {j, k};
+				Eigen::Tensor<double, 2> sub_image = img_tensor.slice(img_offsets, img_extents);			
+				Eigen::MatrixXd sub_image_matrix = Tensor_to_Matrix(sub_image, 3, 3);
+				Eigen::MatrixXd mul = (sub_image_matrix.array() * filter_matrix.array()).matrix();
+				for(int l=0;l<mul.rows();l++){
+					for(int m=0;m<mul.cols();m++){
+						y(j, k, i) += mul(l,m);
+					}
+				}
+			}
+		}
+	}
 
 	return y;
 }
@@ -234,5 +228,11 @@ Eigen::Tensor<double, 3> pool2x2_backward(Eigen::Tensor<double, 3> dl_dy, Eigen:
 		b=0;
 	}
 	return result;	
+}
+
+// function to flatten the tensor and return a vector
+Eigen::VectorXd flatten(Eigen::Tensor<double, 3> x){
+	Eigen::VectorXd y = Eigen::Map<Eigen::VectorXd>(x.data(), x.dimension(0)*x.dimension(1)*x.dimension(2));
+	return y;
 }
 
