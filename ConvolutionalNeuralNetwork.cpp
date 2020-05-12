@@ -82,7 +82,7 @@ class ConvolutionalNeuralNetwork{
 					Eigen::MatrixXd dl_db_fc = Eigen::MatrixXd::Zero(b_fc.rows(), b_fc.cols());
 
 					// backpropogate gradients
-					fc_backward(dl_dy, activation, w2, b2, y_tilde2,
+					fc_backward(dl_dy, pred4, w_fc, b_fc, y_tilde,
 						dl_dx_fc, dl_dw_fc, dl_db_fc);
 
 					Eigen::Tensor dl_dx = flatten_backward(dl_dx_fc, pred3, pred4);

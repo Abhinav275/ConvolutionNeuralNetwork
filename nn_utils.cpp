@@ -209,7 +209,7 @@ Eigen::Tensor<double, 3> pool2x2(Eigen::Tensor<double, 3> x){
 
 // function to get 2x2 max pooling backward
 Eigen::Tensor<double, 3> pool2x2_backward(Eigen::Tensor<double, 3> dl_dy, Eigen::Tensor<double, 3> x, Eigen::Tensor<double, 3> y){
-	Eigen::Tensor<double, 3> result(x.dimension(0), x.dimension(1), x.dimension(3));
+	Eigen::Tensor<double, 3> result(x.dimension(0), x.dimension(1), x.dimension(2));
 	result.setZero();
 	int a = 0;
 	int b = 0;
@@ -236,3 +236,8 @@ Eigen::VectorXd flatten(Eigen::Tensor<double, 3> x){
 	return y;
 }
 
+// function to unflatten gradient vector to tensor
+Eigen::Tensor<double, 3> flatten_backward(Eigen::VectorXd dl_dy, Eigen::Tensor<double, 3> x, Eigen::VectorXd y){
+	Eigen::Tensor<double, 3> dl_dx = Eigen::TensorMap<Eigen::Tensor<double, 3>>(dl_dy.data(), x.dimensions());
+	return dl_dx;
+}

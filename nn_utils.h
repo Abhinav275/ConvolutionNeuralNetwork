@@ -52,3 +52,9 @@ Eigen::Tensor<double, 3> pool2x2(Eigen::Tensor<double, 3> x);
 // function to flatten the tensor and return a vector
 Eigen::VectorXd flatten(Eigen::Tensor<double, 3> x);
 
+// function to unflatten gradient vector to tensor
+Eigen::Tensor<double, 3> flatten_backward(Eigen::VectorXd dl_dy, Eigen::Tensor<double, 3> x, Eigen::VectorXd y);
+
+// function to get 2x2 max pooling backward
+Eigen::Tensor<double, 3> pool2x2_backward(Eigen::Tensor<double, 3> dl_dy, Eigen::Tensor<double, 3> x, Eigen::Tensor<double, 3> y);
+
