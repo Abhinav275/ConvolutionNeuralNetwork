@@ -146,21 +146,50 @@ Eigen::Tensor<double, 3> conv(Eigen::MatrixXd img, Eigen::Tensor<double, 4> w_co
 		
 		for(int j=0;j<img_tensor.dimension(0)-w_conv.dimension(0)+1;j++){
 			for(int k=0;k<img_tensor.dimension(1)-w_conv.dimension(1)+1;k++){
-				
+				Eigen::array<int, 2> img_offsets = {j, k};
+				Eigen::Tensor<double, 2> sub_image = img_tensor.slice(img_offsets, img_extents);			
+				Eigen::MatrixXd sub_image_matrix = Tensor_to_Matrix(sub_image, 3, 3);
+				Eigen::MatrixXd mul = (sub_image_matrix.array() * filter_matrix.array()).matrix();
+				y(j, k, i) += mul.sum() + b_conv(i,0);
+			}
+		}
+	}
+
+	return y;
+}
+
+// function to convolution backwards
+void conv_backward(Eigen::Tensor<double, 3> dl_dy, Eigen::MatrixXd img, Eigen::Tensor<double, 4> w_conv, Eigen::MatrixXd b_conv, Eigen::Tensor<double, 3> y,
+	Eigen::Tensor<double, 4>& dl_dw_conv, Eigen::MatrixXd& dl_db_conv){
+
+	img = pad(img);
+	Eigen::Tensor<double, 2> img_tensor = Matrix_to_Tensor(img, img.rows(), img.cols()); 
+	Eigen::array<int, 3> w_extents = {w_conv.dimension(0), w_conv.dimension(1), 1};
+	Eigen::array<int, 2> img_extents = {w_conv.dimension(0), w_conv.dimension(1)};
+
+	for(int i=0;i<w_conv.dimension(3);i++){
+		Eigen::array<int, 3> offsets = {0, 0, i};
+		Eigen::Tensor<double, 3> filter = dl_dy.slice(offsets, w_extents);
+		Eigen::MatrixXd filter_matrix = Tensor_to_Matrix(filter, 3, 3);
+
+		for(int j=0;j<img_tensor.dimension(0)-w_conv.dimension(0)+1;j++){
+			for(int k=0;k<img_tensor.dimension(1)-w_conv.dimension(1)+1;k++){
 				Eigen::array<int, 2> img_offsets = {j, k};
 				Eigen::Tensor<double, 2> sub_image = img_tensor.slice(img_offsets, img_extents);			
 				Eigen::MatrixXd sub_image_matrix = Tensor_to_Matrix(sub_image, 3, 3);
 				Eigen::MatrixXd mul = (sub_image_matrix.array() * filter_matrix.array()).matrix();
 				for(int l=0;l<mul.rows();l++){
 					for(int m=0;m<mul.cols();m++){
-						y(j, k, i) += mul(l,m);
+						dl_dw_conv(l, m, 0, i) += mul(l,m);
 					}
 				}
 			}
 		}
+
+		dl_db_conv(i, 0) += filter_matrix.sum();
 	}
 
-	return y;
+	return;
 }
 
 // function to get relu of given of convolution result
@@ -176,8 +205,8 @@ Eigen::Tensor<double, 3> relu_conv(Eigen::Tensor<double, 3> x){
 }
 
 
-// function to get relu of given of convolution result
-Eigen::Tensor<double, 3> relu__conv_backward(Eigen::Tensor<double, 3> dl_dy, Eigen::Tensor<double, 3> x, Eigen::Tensor<double, 3> y_pred){
+// function to get relu backwards of given of convolution result
+Eigen::Tensor<double, 3> relu_conv_backward(Eigen::Tensor<double, 3> dl_dy, Eigen::Tensor<double, 3> x, Eigen::Tensor<double, 3> y_pred){
 	for(int i=0;i<x.dimension(0);i++){
 		for(int j=0;j<x.dimension(1);j++){
 			for(int k=0;k<x.dimension(2);k++){

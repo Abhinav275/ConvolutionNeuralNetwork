@@ -7,11 +7,13 @@ using namespace std;
 
 class ConvolutionalNeuralNetwork{
 	private:
-		Eigen::MatrixXd w_fc,b_fc, b_conv;
-		Eigen::Tensor<double, 4> w_conv(3,3,1,3);
+		Eigen::MatrixXd w_fc;
+		Eigen::MatrixXd b_fc;
+		Eigen::MatrixXd b_conv;
+		Eigen::Tensor<double, 4> w_conv;
 
 		// function to intialize tensor
-		Eigen::Tensor init_tensor(double low, double high, Eigen::Tensor t){
+		Eigen::Tensor<double, 4> init_tensor(double low, double high, Eigen::Tensor<double, 4> t){
 			
 			double range = high - low;
 
@@ -26,9 +28,9 @@ class ConvolutionalNeuralNetwork{
 			return t;
 		}
 
-		Map<mat> reshape (vec& b, const uint n, const uint m) {
-		    return Map<const mat>(b.data(), n, m);
-		}
+		// Map<mat> reshape (vec& b, const uint n, const uint m) {
+		//     return Map<const mat>(b.data(), n, m);
+		// }
 
 	public:
 		// function to train single layer perceptron
@@ -37,7 +39,8 @@ class ConvolutionalNeuralNetwork{
 			double decay = 0.9;
 
 			// initialize weights
-			w_conv = init_tensor(0.0, 0.1, w_conv);
+			w_conv = Eigen::Tensor<double, 4>(3,3,1,3);
+			w_conv = this->init_tensor(0.0, 0.1, w_conv);
 			w_fc = get_random_matrix(0.0, 0.1, 10, 147);
 			
 			b_conv = get_random_matrix(0.0, 0.1, 3, 1);
@@ -47,9 +50,10 @@ class ConvolutionalNeuralNetwork{
 			int k=0;
 			double batch_loss = 0.0;
 			double epoch_loss = 0.0;
+			double previous_epoch_loss = 100000000.0;
 
 			cout<<"Training Convolutional Neural Network"<<endl;
-			for(int iter = 1; iter<20000; iter++){
+			for(int iter = 1; iter<15000; iter++){
 				if(iter%2000 == 0) lr = lr*decay;
 
 				Eigen::Tensor<double, 4> dL_dw_conv = w_conv.constant(0.0);
@@ -61,17 +65,17 @@ class ConvolutionalNeuralNetwork{
 				// iterate over current batch;
 				for(int i=0;i<mini_x[k].size();i++){
 
-					Eigen::MatrixXd img = reshape(mini_x[k][i], 14, 14);
+					Eigen::MatrixXd img = Eigen::Map<Eigen::MatrixXd>(mini_x[k][i].data(), 14, 14);
 
-					Eigen::Tensor pred1 = conv(img, w_conv, b_conv);
-					Eigen::Tensor pred2 = relu_conv(pred1);
-					Eigen::Tensor pred3 = pool2x2(pred2);
+					Eigen::Tensor<double, 3> pred1 = conv(img, w_conv, b_conv);
+					Eigen::Tensor<double, 3> pred2 = relu_conv(pred1);
+					Eigen::Tensor<double, 3> pred3 = pool2x2(pred2);
 					Eigen::VectorXd pred4 = flatten(pred3);
 					Eigen::VectorXd y_tilde = fc(pred4, w_fc, b_fc);
 					
 					double loss=0.0;
 					Eigen::VectorXd dl_dy;
-					get_cross_entropy_loss(y_tilde2, mini_y[k][i], loss, dl_dy);
+					get_cross_entropy_loss(y_tilde, mini_y[k][i], loss, dl_dy);
 
 					batch_loss += loss;
 
@@ -85,9 +89,15 @@ class ConvolutionalNeuralNetwork{
 					fc_backward(dl_dy, pred4, w_fc, b_fc, y_tilde,
 						dl_dx_fc, dl_dw_fc, dl_db_fc);
 
-					Eigen::Tensor dl_dx = flatten_backward(dl_dx_fc, pred3, pred4);
-					Eigen::Tensor dl_dx = pool2x2_backward(dl_dx, pred2, pred3);
-					Eigen::Tensor dl_dx = relu__conv_backward(dl_dx, pred1, pred2);
+					Eigen::Tensor<double, 3> dl_dx = flatten_backward(dl_dx_fc, pred3, pred4);
+					
+					dl_dx = pool2x2_backward(dl_dx, pred2, pred3);
+					dl_dx = relu_conv_backward(dl_dx, pred1, pred2);
+
+					Eigen::Tensor<double, 4> dl_dw_conv(3,3,1,3);
+					dl_dw_conv.setConstant(0.0);
+
+					Eigen::MatrixXd dl_db_conv = Eigen::MatrixXd::Zero(b_conv.rows(), b_conv.cols());
 
 					conv_backward(dl_dx, img, w_conv, b_conv, pred1,
 						dl_dw_conv, dl_db_conv);
@@ -112,7 +122,11 @@ class ConvolutionalNeuralNetwork{
 				k+=1;
 				if(k == mini_x.size()) {
 					cout<<"Epoch loss: "<<epoch_loss/mini_x.size()<<endl;
+					if(previous_epoch_loss < epoch_loss/mini_x.size()){
+						break;
+					}
 					k=0;
+					previous_epoch_loss = epoch_loss/mini_x.size();
 					epoch_loss = 0.0;
 				}
 
@@ -124,17 +138,17 @@ class ConvolutionalNeuralNetwork{
 				// function to test single layer perceptron linear
 		void test(vector<Eigen::VectorXd> test_data, vector<int> test_labels){
 			double accuracy = 0.0;
-			cout<<"Testing Multi Layer Perceptron"<<endl;
+			cout<<"Testing Convolutional Neural Network"<<endl;
 			for(int i=0;i<test_data.size();i++){
 				
 				// forward propogation in network
-				Eigen::MatrixXd img = reshape(mini_x[k][i], 14, 14);
+				Eigen::MatrixXd img = Eigen::Map<Eigen::MatrixXd>(test_data[i].data(), 14, 14);
 
-				Eigen::MatrixXd pred1 = conv(img, w_conv, b_conv);
-				Eigen::MatrixXd pred2 = relu_conv(pred1);
-				Eigen::MatrixXd pred3 = pool2x2(pred2);
+				Eigen::Tensor<double, 3> pred1 = conv(img, w_conv, b_conv);
+				Eigen::Tensor<double, 3> pred2 = relu_conv(pred1);
+				Eigen::Tensor<double, 3> pred3 = pool2x2(pred2);
 				Eigen::VectorXd pred4 = flatten(pred3);
-				Eigen::VectorXd y_predict_label = fc(pred4, w_fc, b_fc);
+				Eigen::VectorXd y_predict = fc(pred4, w_fc, b_fc);
 				
 				// get index of max value
 				int y_predict_label;

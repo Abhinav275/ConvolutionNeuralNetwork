@@ -13,6 +13,7 @@
 #include "SLPLinear.cpp"
 #include "SingleLayerPerceptron.cpp"
 #include "MultiLayerPerceptron.cpp"
+#include "ConvolutionalNeuralNetwork.cpp"
 
 using namespace std;
 
@@ -45,9 +46,13 @@ int main()
 	// singleLayerPerceptron.train(mini_x, mini_y);
 	// singleLayerPerceptron.test(test_data, im_test_labels);
 
-	MultiLayerPerceptron multiLayerPerceptron;
-	multiLayerPerceptron.train(mini_x, mini_y);
-	multiLayerPerceptron.test(test_data, im_test_labels);
+	// MultiLayerPerceptron multiLayerPerceptron;
+	// multiLayerPerceptron.train(mini_x, mini_y);
+	// multiLayerPerceptron.test(test_data, im_test_labels);
+
+	ConvolutionalNeuralNetwork cnn;
+	cnn.train(mini_x, mini_y);
+	cnn.test(test_data, im_test_labels);
 
 	return 0;
 }

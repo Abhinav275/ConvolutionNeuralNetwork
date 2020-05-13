@@ -58,3 +58,10 @@ Eigen::Tensor<double, 3> flatten_backward(Eigen::VectorXd dl_dy, Eigen::Tensor<d
 // function to get 2x2 max pooling backward
 Eigen::Tensor<double, 3> pool2x2_backward(Eigen::Tensor<double, 3> dl_dy, Eigen::Tensor<double, 3> x, Eigen::Tensor<double, 3> y);
 
+// function to get relu of given of convolution result
+Eigen::Tensor<double, 3> relu_conv_backward(Eigen::Tensor<double, 3> dl_dy, Eigen::Tensor<double, 3> x, Eigen::Tensor<double, 3> y_pred);
+
+// function to convolution backwards
+void conv_backward(Eigen::Tensor<double, 3> dl_dy, Eigen::MatrixXd img, Eigen::Tensor<double, 4> w_conv, Eigen::MatrixXd b_conv, Eigen::Tensor<double, 3> y,
+	Eigen::Tensor<double, 4>& dl_dw_conv, Eigen::MatrixXd& dl_db_conv);
+
