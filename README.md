@@ -1,8 +1,8 @@
 # ConvolutionalNeuralNetwork
-Implementation of convolutional neural network in c++
+Implementation of convolutional neural network in C++.
 
 # Requirments
-```Eigen3``` is required for Tensor and Matrix operations
+```Eigen3``` is required for Tensor and Matrix operations.
 
 # Dataset
 I have used small MNIST dataset which has ```12000``` training images and ```2000``` test images of size ```14x14```. The dataset was preprocessed and saved in csv file where 14x14 images where flattened to ```196x1``` vector and the label was appended as the last element. So finally each record is the dataset is of size ```197x1```.
