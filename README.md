@@ -1,4 +1,6 @@
 # ConvolutionalNeuralNetwork
+[![GitHub license](https://img.shields.io/github/license/Abhinav275/ConvolutionalNeuralNetwork)](https://github.com/Abhinav275/ConvolutionalNeuralNetwork/blob/master/LICENSE)
+
 Implementation of convolutional neural network in C++.
 
 # Requirments
