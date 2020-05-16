@@ -217,6 +217,31 @@ Eigen::Tensor<double, 3> relu_conv_backward(Eigen::Tensor<double, 3> dl_dy, Eige
 	return dl_dy;
 }
 
+// function to get relu of given of convolution result
+Eigen::Tensor<double, 3> leaky_relu_conv(Eigen::Tensor<double, 3> x){
+	for(int i=0;i<x.dimension(0);i++){
+		for(int j=0;j<x.dimension(1);j++){
+			for(int k=0;k<x.dimension(2);k++){
+				if(x(i,j,k) < 0.0) x(i,j,k) = x(i,j,k)*0.001;
+			}
+		}
+	}
+	return x;
+}
+
+
+// function to get relu backwards of given of convolution result
+Eigen::Tensor<double, 3> leaky_relu_conv_backward(Eigen::Tensor<double, 3> dl_dy, Eigen::Tensor<double, 3> x, Eigen::Tensor<double, 3> y_pred){
+	for(int i=0;i<x.dimension(0);i++){
+		for(int j=0;j<x.dimension(1);j++){
+			for(int k=0;k<x.dimension(2);k++){
+				if(x(i,j,k) <= 0.0) dl_dy(i,j,k) = -0.001;
+			}
+		}
+	}
+	return dl_dy;
+}
+
 // function to get 2x2 max pooling results for matrix
 Eigen::Tensor<double, 3> pool2x2(Eigen::Tensor<double, 3> x){
 	Eigen::Tensor<double, 3> y(x.dimension(0)/2, x.dimension(1)/2, x.dimension(3));

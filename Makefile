@@ -1,4 +1,4 @@
-main: main.cpp utils.h nn_utils.h
+main: main.cpp utils.h nn_utils.h ConvolutionalNeuralNetwork.cpp SingleLayerPerceptron.cpp MultiLayerPerceptron.cpp SLPLinear.cpp
 	g++ -o main -w -L/usr/local/lib/ -I/usr/local/include/eigen3/ -g utils.h utils.cpp nn_utils.h nn_utils.cpp SLPLinear.cpp SingleLayerPerceptron.cpp MultiLayerPerceptron.cpp ConvolutionalNeuralNetwork.cpp main.cpp
 
 clean:

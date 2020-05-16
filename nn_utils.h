@@ -65,3 +65,8 @@ Eigen::Tensor<double, 3> relu_conv_backward(Eigen::Tensor<double, 3> dl_dy, Eige
 void conv_backward(Eigen::Tensor<double, 3> dl_dy, Eigen::MatrixXd img, Eigen::Tensor<double, 4> w_conv, Eigen::MatrixXd b_conv, Eigen::Tensor<double, 3> y,
 	Eigen::Tensor<double, 4>& dl_dw_conv, Eigen::MatrixXd& dl_db_conv);
 
+// function to get relu of given of convolution result
+Eigen::Tensor<double, 3> leaky_relu_conv(Eigen::Tensor<double, 3> x);
+
+// function to get relu backwards of given of convolution result
+Eigen::Tensor<double, 3> leaky_relu_conv_backward(Eigen::Tensor<double, 3> dl_dy, Eigen::Tensor<double, 3> x, Eigen::Tensor<double, 3> y_pred);
